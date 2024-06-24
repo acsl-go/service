@@ -10,23 +10,32 @@ import (
 
 type ServiceTask func(*sync.WaitGroup, chan os.Signal)
 
+var (
+	started     bool = false
+	wg          *sync.WaitGroup
+	quit_signal chan os.Signal
+)
+
 func Run(tasks ...ServiceTask) {
-
-	quit_signal := make(chan os.Signal, 1)
-	signal.Notify(quit_signal, syscall.SIGTERM, syscall.SIGINT)
-
-	wg := &sync.WaitGroup{}
+	if !started {
+		quit_signal = make(chan os.Signal, 1)
+		signal.Notify(quit_signal, syscall.SIGTERM, syscall.SIGINT)
+		wg = &sync.WaitGroup{}
+	}
 
 	for _, task := range tasks {
 		wg.Add(1)
 		go task(wg, quit_signal)
 	}
 
-	fmt.Println("System Started")
+	if !started {
+		started = true
+		fmt.Println("System Started")
 
-	<-quit_signal
-	fmt.Println("System Stopping ...")
-	quit_signal <- syscall.SIGTERM
+		<-quit_signal
+		fmt.Println("System Stopping ...")
+		quit_signal <- syscall.SIGTERM
 
-	wg.Wait()
+		wg.Wait()
+	}
 }
