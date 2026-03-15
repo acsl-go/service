@@ -9,12 +9,12 @@ import (
 	"github.com/acsl-go/logger"
 )
 
-func HttpServer(name, addr string, router http.Handler) ServiceTask {
+func HttpServer(name, addr string, initRouter func(context.Context) http.Handler) ServiceTask {
 	return func(ctx context.Context) {
 
 		server := &http.Server{
 			Addr:    addr,
-			Handler: router,
+			Handler: initRouter(ctx),
 		}
 
 		go func() {
@@ -37,12 +37,12 @@ func HttpServer(name, addr string, router http.Handler) ServiceTask {
 	}
 }
 
-func HttpsServer(name, addr, certFile, keyFile string, router http.Handler) ServiceTask {
+func HttpsServer(name, addr, certFile, keyFile string, initRouter func(context.Context) http.Handler) ServiceTask {
 	return func(ctx context.Context) {
 
 		server := &http.Server{
 			Addr:    addr,
-			Handler: router,
+			Handler: initRouter(ctx),
 			TLSConfig: &tls.Config{
 				MinVersion: tls.VersionTLS12,
 			},
