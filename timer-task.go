@@ -1,23 +1,19 @@
 package service
 
 import (
-	"os"
-	"sync"
+	"context"
 	"time"
 )
 
 func Timer(interval time.Duration, task func()) ServiceTask {
-	return func(wg *sync.WaitGroup, quit_signal chan os.Signal) {
-		defer wg.Done()
-
+	return func(ctx context.Context) {
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
-
 		for {
 			select {
 			case <-ticker.C:
 				task()
-			case <-quit_signal:
+			case <-ctx.Done():
 				return
 			}
 		}

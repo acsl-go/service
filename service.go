@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -8,37 +9,44 @@ import (
 	"syscall"
 )
 
-type ServiceTask func(*sync.WaitGroup, chan os.Signal)
+type ServiceTask func(context.Context)
 
 var (
-	started      bool            = false
-	wg           *sync.WaitGroup = &sync.WaitGroup{}
-	quit_signal  chan os.Signal  = make(chan os.Signal, 1)
-	padding_list []ServiceTask   = []ServiceTask{}
+	_started      bool            = false
+	_wg           *sync.WaitGroup = &sync.WaitGroup{}
+	_ctx          context.Context = nil
+	_padding_list []ServiceTask   = []ServiceTask{}
 )
 
+func taskWrapper(task ServiceTask) {
+	defer _wg.Done()
+	task(_ctx)
+}
+
 func Run(tasks ...ServiceTask) {
-	if started {
+	if _started {
 		for _, task := range tasks {
-			wg.Add(1)
-			go task(wg, quit_signal)
+			_wg.Add(1)
+			go taskWrapper(task)
 		}
 	} else {
-		padding_list = append(padding_list, tasks...)
+		_padding_list = append(_padding_list, tasks...)
 	}
 }
 
 func Start() {
-	started = true
-	signal.Notify(quit_signal, syscall.SIGTERM, syscall.SIGINT)
-
-	Run(padding_list...)
+	_started = true
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	_ctx = ctx
+	Run(_padding_list...)
 
 	fmt.Println("System Started")
 
+	quit_signal := make(chan os.Signal, 1)
+	signal.Notify(quit_signal, syscall.SIGTERM, syscall.SIGINT)
 	<-quit_signal
 	fmt.Println("System Stopping ...")
-	quit_signal <- syscall.SIGTERM
 
-	wg.Wait()
+	cancelFunc()
+	_wg.Wait()
 }
