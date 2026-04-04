@@ -52,8 +52,8 @@ func (srv *grpcService) OnStopped() {
 	srv.impl.OnStopped()
 }
 
-func NewGRPCService(impl IGRPCService) *grpcService {
-	return &grpcService{
+func NewGRPCService(impl IGRPCService) *ServiceTask {
+	return NewServiceTask(&grpcService{
 		impl: impl,
-	}
+	})
 }
