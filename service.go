@@ -9,21 +9,24 @@ import (
 	"syscall"
 )
 
-type ServiceTask func(context.Context)
+// deprecated, use TaskManager instead
+type ServiceTaskFunc func(context.Context)
 
 var (
-	_started      bool            = false
-	_wg           *sync.WaitGroup = &sync.WaitGroup{}
-	_ctx          context.Context = nil
-	_padding_list []ServiceTask   = []ServiceTask{}
+	_started      bool              = false
+	_wg           *sync.WaitGroup   = &sync.WaitGroup{}
+	_ctx          context.Context   = nil
+	_padding_list []ServiceTaskFunc = []ServiceTaskFunc{}
 )
 
-func taskWrapper(task ServiceTask) {
+// deprecated, use TaskManager instead
+func taskWrapper(task ServiceTaskFunc) {
 	defer _wg.Done()
 	task(_ctx)
 }
 
-func Run(tasks ...ServiceTask) {
+// deprecated, use TaskManager instead
+func Run(tasks ...ServiceTaskFunc) {
 	if _started {
 		for _, task := range tasks {
 			_wg.Add(1)
@@ -34,6 +37,7 @@ func Run(tasks ...ServiceTask) {
 	}
 }
 
+// deprecated, use TaskManager instead
 func Start() {
 	_started = true
 	ctx, cancelFunc := context.WithCancel(context.Background())

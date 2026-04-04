@@ -5,7 +5,8 @@ import (
 	"time"
 )
 
-func Timer(interval time.Duration, task func()) ServiceTask {
+// deprecated
+func Timer(interval time.Duration, task func()) ServiceTaskFunc {
 	return func(ctx context.Context) {
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()

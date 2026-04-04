@@ -9,7 +9,8 @@ import (
 	"github.com/acsl-go/logger"
 )
 
-func HttpServer(name, addr string, initRouter func(context.Context) http.Handler) ServiceTask {
+// deprecated
+func HttpServer(name, addr string, initRouter func(context.Context) http.Handler) ServiceTaskFunc {
 	return func(ctx context.Context) {
 
 		server := &http.Server{
@@ -37,7 +38,8 @@ func HttpServer(name, addr string, initRouter func(context.Context) http.Handler
 	}
 }
 
-func HttpsServer(name, addr, certFile, keyFile string, initRouter func(context.Context) http.Handler) ServiceTask {
+// deprecated
+func HttpsServer(name, addr, certFile, keyFile string, initRouter func(context.Context) http.Handler) ServiceTaskFunc {
 	return func(ctx context.Context) {
 
 		server := &http.Server{
