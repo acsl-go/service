@@ -10,10 +10,26 @@ import (
 	"syscall"
 )
 
+type ITask interface {
+	Main(ctx context.Context)
+}
+
 type TaskManager struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 	wg     sync.WaitGroup
+}
+
+type TaskWrapper struct {
+	body func(ctx context.Context)
+}
+
+func (tw *TaskWrapper) Main(ctx context.Context) {
+	tw.body(ctx)
+}
+
+func NewTask(body func(ctx context.Context)) *TaskWrapper {
+	return &TaskWrapper{body: body}
 }
 
 func NewTaskManager() *TaskManager {
@@ -24,7 +40,7 @@ func NewTaskManager() *TaskManager {
 	}
 }
 
-func (tm *TaskManager) Run(task *ServiceTask) *ServiceTask {
+func (tm *TaskManager) Run(task ITask) ITask {
 	if task == nil {
 		log.Printf("【Warning】Attempting to run nil task, skipping.\nStack:\n%s", debug.Stack())
 		return nil
@@ -37,12 +53,12 @@ func (tm *TaskManager) Run(task *ServiceTask) *ServiceTask {
 				log.Printf("【Task Panic】Recover: %v\nStack:\n%s", r, debug.Stack())
 			}
 		}()
-		task.loop(tm.ctx)
+		task.Main(tm.ctx)
 	}()
 	return task
 }
 
-func (tm *TaskManager) RunMultiple(tasks ...*ServiceTask) {
+func (tm *TaskManager) RunMultiple(tasks ...ITask) {
 	for _, task := range tasks {
 		tm.Run(task)
 	}

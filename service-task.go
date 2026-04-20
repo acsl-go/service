@@ -66,7 +66,7 @@ func NewServiceTask(delegate IService) *ServiceTask {
 }
 
 func (t *ServiceTask) Run(mgr *TaskManager) *ServiceTask {
-	return mgr.Run(t)
+	return mgr.Run(t).(*ServiceTask)
 }
 
 func (t *ServiceTask) Stop() {
@@ -77,7 +77,7 @@ func (t *ServiceTask) Stop() {
 	}
 }
 
-func (t *ServiceTask) loop(parentCtx context.Context) {
+func (t *ServiceTask) Main(parentCtx context.Context) {
 	t.lock.Lock()
 	if t.cancel != nil { // ensure only one loop is running
 		return
