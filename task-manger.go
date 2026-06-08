@@ -40,6 +40,10 @@ func NewTaskManager() *TaskManager {
 	}
 }
 
+func (tm *TaskManager) Context() context.Context {
+	return tm.ctx
+}
+
 func (tm *TaskManager) Run(task ITask) ITask {
 	if task == nil {
 		log.Printf("【Warning】Attempting to run nil task, skipping.\nStack:\n%s", debug.Stack())
